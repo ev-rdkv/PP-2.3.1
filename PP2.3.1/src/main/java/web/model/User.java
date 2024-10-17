@@ -1,4 +1,5 @@
 package web.model;
+
 import javax.persistence.*;
 import javax.validation.constraints.Max;
 import javax.validation.constraints.Min;
@@ -24,8 +25,8 @@ public class User {
     private String lastName;
 
     @Column(name = "age")
-    @Min(value=0, message = "Возраст не может быть отрицательным")
-    @Max(value=100, message = "Возраст не может быть больше 100")
+    @Min(value = 0, message = "Возраст не может быть отрицательным")
+    @Max(value = 100, message = "Возраст не может быть больше 100")
     private Byte age;
 
     public User() {
