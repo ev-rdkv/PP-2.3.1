@@ -1,8 +1,11 @@
 package web.config;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.PropertySource;
+import org.springframework.core.env.Environment;
 import org.springframework.jdbc.datasource.DriverManagerDataSource;
 import org.springframework.orm.jpa.JpaTransactionManager;
 import org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean;
@@ -16,13 +19,16 @@ import java.util.Properties;
 
 @Configuration
 @EnableTransactionManagement
-@ComponentScan(value = "java")
+@ComponentScan(value = "web")
+@PropertySource("classpath:db.properties")
 public class DBConfig {
-    private final static String URL = "jdbc:mysql://localhost:3306/evrdkv";
-    private final static String USERNAME = "evrdkv";
-    private final static String PASSWORDS = "03021966Evgesh";
-    private final static String DRIVER = "com.mysql.cj.jdbc.Driver";
-    private final static String DIALECT = "org.hibernate.dialect.MySQL5Dialect";
+
+    private final Environment environment;
+
+    @Autowired
+    public DBConfig(Environment environment) {
+        this.environment = environment;
+    }
 
 
     @Bean
@@ -31,7 +37,7 @@ public class DBConfig {
         em.setJpaVendorAdapter(new HibernateJpaVendorAdapter());
         em.setDataSource(dataSource());
         em.setPackagesToScan("web.model");
-        em.setJpaProperties(jpaProperties());
+        em.setJpaProperties(hibernateProperties());
 
         return em;
     }
@@ -39,10 +45,10 @@ public class DBConfig {
     @Bean
     public DataSource dataSource() {
         DriverManagerDataSource dataSource = new DriverManagerDataSource();
-        dataSource.setDriverClassName(Objects.requireNonNull(DRIVER));
-        dataSource.setUrl(URL);
-        dataSource.setUsername(USERNAME);
-        dataSource.setPassword(PASSWORDS);
+        dataSource.setDriverClassName(Objects.requireNonNull(environment.getProperty("db.driver")));
+        dataSource.setUrl(environment.getProperty("db.url"));
+        dataSource.setUsername(environment.getProperty("db.username"));
+        dataSource.setPassword(environment.getProperty("db.password"));
         return dataSource;
     }
 
@@ -54,12 +60,13 @@ public class DBConfig {
         return manager;
     }
 
-    private Properties jpaProperties() {
+    private Properties hibernateProperties() {
         Properties properties = new Properties();
-        properties.setProperty("hibernate.hbm2ddl.auto", "update");
-        properties.setProperty("hibernate.show_sql", "true");
-        properties.setProperty("hibernate.dialect", DIALECT);
-        properties.setProperty("encoding", "UTF-8");
+        properties.put("hibernate.dialect", environment.getProperty("hibernate.dialect"));
+        properties.put("hibernate.show_sql", environment.getProperty("hibernate.show_sql"));
+        properties.put("hibernate.hbm2ddl.auto", environment.getProperty("hibernate.hbm2ddl.auto"));
+
         return properties;
     }
+
 }
